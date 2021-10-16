@@ -1,12 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Sbz.Application\Sbz.Application.csproj" />
-    <ProjectReference Include="..\Sbz.Infrastructure\Sbz.Infrastructure.csproj" />
+    <ProjectReference Include="..\Sbz.Domain\Sbz.Domain.csproj" />
   </ItemGroup>
 
 </Project>
