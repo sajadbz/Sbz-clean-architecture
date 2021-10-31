@@ -1,16 +1,25 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Sbz.Application\Sbz.Application.csproj" />
-    <ProjectReference Include="..\Sbz.Domain\Sbz.Domain.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor" Version="2.2.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+		<PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+		<PackageReference Include="NLog" Version="4.7.9" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="nlog.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Sbz.Application\Sbz.Application.csproj" />
+		<ProjectReference Include="..\Sbz.Domain\Sbz.Domain.csproj" />
+	</ItemGroup>
 
 </Project>
