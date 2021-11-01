@@ -16,6 +16,7 @@ namespace Sbz.Infrastructure
             services.AddScoped<ICookieService, CookieService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddTransient<IDateTime, DateTimeService>();
+            services.AddTransient<IFileService, FileService>();
             return services;
         }
     }
