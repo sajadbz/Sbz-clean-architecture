@@ -407,16 +407,16 @@ namespace Sbz.Infrastructure.Services
             {
                 case UploadType.UserAvatar:
                     return Paths.User.ImagePathServer;
-                case UploadType.UserIdentity:
-                    return Paths.User.IdentityImagePathServer;
+                //case UploadType.UserIdentity:
+                //    return Paths.User.IdentityImagePathServer;
                 case UploadType.CkEditor:
                     return Paths.UploadEditorPathServer;
-                case UploadType.ProductGallery:
-                    return Paths.Product.ImagePathServer;
-                case UploadType.ProductCatalog:
-                    return Paths.Product.CatalogPathServer;
-                case UploadType.BranchLogo:
-                    return Paths.Branch.ImagePathServer;
+                //case UploadType.ProductGallery:
+                //    return Paths.Product.ImagePathServer;
+                //case UploadType.ProductCatalog:
+                //    return Paths.Product.CatalogPathServer;
+                //case UploadType.BranchLogo:
+                //    return Paths.Branch.ImagePathServer;
             }
 
             return Paths.UploadStaticFilePath;
