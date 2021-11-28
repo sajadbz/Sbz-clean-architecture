@@ -7,12 +7,16 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Sbz.Domain\Sbz.Domain.csproj" />
 	</ItemGroup>
+	
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="10.1.1" />
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
 		<PackageReference Include="Bz.ClassFinder" Version="1.0.3" />
 		<PackageReference Include="HtmlSanitizer" Version="5.0.376" />
-		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 </Project>
