@@ -13,6 +13,6 @@
 		<PackageReference Include="Bz.ClassFinder" Version="1.0.3" />
 		<PackageReference Include="HtmlSanitizer" Version="5.0.376" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 </Project>
