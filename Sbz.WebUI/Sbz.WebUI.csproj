@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Sbz.Application\Sbz.Application.csproj" />
     <ProjectReference Include="..\Sbz.Infrastructure\Sbz.Infrastructure.csproj" />
   </ItemGroup>
 
