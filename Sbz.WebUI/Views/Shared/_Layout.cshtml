@@ -3,64 +3,57 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Sbz.WebUI</title>
+    <title>@ViewData["Title"] | Sbz Tasks</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Sbz.WebUI</a>
-                <button class="navbar-toggler" id="navbar-toggle" type="button" aria-controls="site-navigation"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div id="site-navigation" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+<body class="public-shell" data-shell="public">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-sm container site-container" aria-label="Main navigation">
+            <a class="site-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark" aria-hidden="true">S</span> Sbz Tasks</a>
+            <button class="navbar-toggler" id="navbar-toggle" type="button" aria-controls="site-navigation"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="site-navigation" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav site-nav">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Tasks" asp-action="Index">Tasks</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Design">Functional Design</a></li>
+                    @if (User.IsInRole(Sbz.Application.Accounts.AccountRoles.Administrator))
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a></li>
+                    }
+                </ul>
+                <ul class="navbar-nav align-items-sm-center gap-sm-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item"><span class="navbar-text me-sm-2">@User.Identity.Name</span></li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">Sign out</button>
+                            </form>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Tasks" asp-action="Index">Tasks</a>
-                        </li>
-                        @if (User.IsInRole(Sbz.Application.Accounts.AccountRoles.Administrator))
-                        {
-                            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Admin</a></li>
-                        }
-                    </ul>
-                    <ul class="navbar-nav align-items-sm-center">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item"><span class="navbar-text me-sm-2">@User.Identity.Name</span></li>
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button class="btn btn-outline-secondary btn-sm" type="submit">Sign out</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Sign in</a></li>
-                            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a></li>
-                        }
-                    </ul>
-                </div>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Sign in</a></li>
+                        <li class="nav-item"><a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Create account</a></li>
+                    }
+                </ul>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2021 - Sbz.WebUI - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main id="main-content" class="container site-container site-main">
+        @RenderBody()
+    </main>
+    <footer class="site-footer">
+        <div class="container site-container d-flex flex-wrap justify-content-between gap-3">
+            <span>Sbz Tasks</span>
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                <a href="https://github.com/sajadbz/Sbz-clean-architecture">GitHub</a>
+            </div>
         </div>
     </footer>
     <script src="~/js/site.js" asp-append-version="true"></script>

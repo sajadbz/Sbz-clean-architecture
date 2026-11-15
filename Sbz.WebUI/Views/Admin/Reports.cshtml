@@ -1,0 +1,36 @@
+@model Sbz.Application.Tasks.TaskAdministrationReport
+@{ ViewData["Title"] = "Reports"; }
+
+<div class="admin-heading">
+    <h1>Reports</h1>
+    <p>Task status and ownership across all accounts.</p>
+</div>
+<dl class="metric-grid">
+    <div class="metric-card"><dt>Total tasks</dt><dd data-metric="total">@Model.Totals.Total</dd></div>
+    <div class="metric-card"><dt>Open</dt><dd data-metric="open">@Model.Totals.Open</dd></div>
+    <div class="metric-card"><dt>Completed</dt><dd data-metric="completed">@Model.Totals.Completed</dd></div>
+    <div class="metric-card"><dt>Unassigned</dt><dd data-metric="unassigned">@Model.Totals.Unassigned</dd></div>
+</dl>
+<section class="admin-panel" aria-labelledby="tasks-by-owner">
+    <div class="admin-panel-header">
+        <div><h2 id="tasks-by-owner">Tasks by owner</h2><p>Up to ten owners, ranked by assigned tasks.</p></div>
+    </div>
+    @if (Model.Owners.Count == 0)
+    {
+        <p class="mb-0 text-secondary">No tasks have an owner yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th scope="col">Owner</th><th scope="col">Open</th><th scope="col">Completed</th><th scope="col">Total</th></tr></thead>
+                <tbody>
+                @foreach (var owner in Model.Owners)
+                {
+                    <tr><th scope="row">@owner.UserName</th><td>@owner.Open</td><td>@owner.Completed</td><td>@owner.Total</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

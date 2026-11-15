@@ -129,20 +129,20 @@ public sealed class AccountAdministrationTests : IDisposable
         using var ownerMissing = await SubmitAsync(admin, edit, edit, new()
         {
             ["Title"] = "Transfer this task",
-            ["OwnerName"] = "missing"
+            ["OwnerId"] = Guid.NewGuid().ToString()
         });
-        Assert.Contains("No account has that username.", await ownerMissing.Content.ReadAsStringAsync());
+        Assert.Contains("Select an existing owner.", await ownerMissing.Content.ReadAsStringAsync());
         using var duplicateTitle = await SubmitAsync(admin, edit, edit, new()
         {
             ["Title"] = "Second task",
-            ["OwnerName"] = "second"
+            ["OwnerId"] = await FindAccountIdAsync(admin, "second")
         });
         Assert.Contains("This owner already has a task with that title.", await duplicateTitle.Content.ReadAsStringAsync());
 
         using var transferred = await SubmitAsync(admin, edit, edit, new()
         {
             ["Title"] = "Transferred task",
-            ["OwnerName"] = "second",
+            ["OwnerId"] = await FindAccountIdAsync(admin, "second"),
             ["IsCompleted"] = "true"
         });
         Assert.Equal(HttpStatusCode.Redirect, transferred.StatusCode);
@@ -187,7 +187,7 @@ public sealed class AccountAdministrationTests : IDisposable
         var fields = new Dictionary<string, string>
         {
             ["Title"] = "Task from administrator",
-            ["OwnerName"] = "managed-user",
+            ["OwnerId"] = await FindAccountIdAsync(admin, "managed-user"),
             ["IsCompleted"] = "true"
         };
         using var added = await SubmitAsync(admin, task, task, fields);
@@ -242,7 +242,7 @@ public sealed class AccountAdministrationTests : IDisposable
         Pooling = false
     }.ToString(), withAdmin: true);
 
-    private static async Task<string> FindAccountIdAsync(HttpClient admin, string username)
+    internal static async Task<string> FindAccountIdAsync(HttpClient admin, string username)
     {
         var page = await admin.GetStringAsync($"/admin/users?search={username}");
         return Assert.Single(Regex.Matches(page, "href=\"/admin/users/([^\"/]+)\""), match => Guid.TryParse(match.Groups[1].Value, out _)).Groups[1].Value;

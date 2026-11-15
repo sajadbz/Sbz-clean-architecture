@@ -1,8 +1,30 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="home-hero">
+    <div class="hero-copy">
+        <h1>Make room for<br class="d-none d-lg-inline" /> what matters.</h1>
+        <p>Keep a private task list, see what is still open, and pick up where you left off.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-lg" asp-controller="Tasks" asp-action="Index">My tasks <span aria-hidden="true">↗</span></a>
+            <a class="btn btn-outline-secondary btn-lg" asp-action="Design">Functional Design</a>
+        </div>
+    </div>
+    <div class="hero-preview" aria-label="Example task list">
+        <div class="preview-paper">
+            <div class="preview-head"><span>My tasks</span><span class="preview-tag">Example</span></div>
+            <ul class="preview-list">
+                <li><span class="preview-check" aria-hidden="true">✓</span><span>Review the design</span><small>Completed</small></li>
+                <li><span class="preview-empty" aria-hidden="true"></span><span>Prepare the release</span><small>Open</small></li>
+                <li><span class="preview-empty" aria-hidden="true"></span><span>Check follow-up tasks</span><small>Open</small></li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="home-features" aria-label="Task management features">
+    <article><h2>Private by default</h2><p>Your personal list is available only after you sign in.</p></article>
+    <article><h2>See what is open</h2><p>Complete tasks, reopen them, and filter your list by status.</p></article>
+    <article><h2>Built to be reviewed</h2><p>Read the functional design and see how the behavior is verified on GitHub.</p></article>
+</section>

@@ -200,7 +200,7 @@ public sealed class TaskListTests : IDisposable
         using var assigned = await SubmitAsync(admin, "/admin/tasks/1", "/admin/tasks/1", new()
         {
             ["Title"] = "Existing task",
-            ["OwnerName"] = "member",
+            ["OwnerId"] = await AccountAdministrationTests.FindAccountIdAsync(admin, "member"),
             ["IsCompleted"] = "false"
         });
         Assert.Equal(HttpStatusCode.Redirect, assigned.StatusCode);

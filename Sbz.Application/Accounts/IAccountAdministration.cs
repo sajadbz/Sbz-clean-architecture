@@ -13,6 +13,7 @@ public enum AccountResult { Saved, NotFound, Forbidden, Invalid }
 
 public interface IAccountAdministration
 {
+    Task<int> CountAsync(CancellationToken cancellationToken);
     Task<AccountPage> ListAsync(string search, int page, CancellationToken cancellationToken);
     Task<ManagedAccount> FindAsync(string id, CancellationToken cancellationToken);
     Task<AccountCreation> CreateAsync(string actorId, string userName, string password, CancellationToken cancellationToken);

@@ -5,7 +5,7 @@
     <h1>Manage tasks</h1>
     <a asp-action="CreateTask" class="btn btn-primary">New task</a>
 </div>
-<form asp-action="Tasks" method="get" class="row g-2 align-items-end mb-4">
+<form asp-action="Tasks" method="get" class="row g-3 align-items-end admin-filter mb-4">
     <div class="col-12 col-sm">
         <label for="task-search" class="form-label">Title</label>
         <input id="task-search" name="search" value="@Model.Search" class="form-control" />
@@ -14,7 +14,7 @@
         <input id="unassigned" class="form-check-input" type="checkbox" name="unassigned" value="true" checked="@Model.Unassigned" />
         <label for="unassigned" class="form-check-label">Unassigned only</label>
     </div>
-    <div class="col-auto"><button class="btn btn-primary" type="submit">Search</button></div>
+    <div class="col-auto d-flex gap-2"><button class="btn btn-primary" type="submit">Search</button><a class="btn btn-outline-secondary" asp-action="Tasks">Clear filters</a></div>
 </form>
 
 @if (Model.Results.Tasks.Count == 0)
@@ -23,8 +23,8 @@
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
+    <div class="table-responsive admin-table">
+        <table class="table align-middle mb-0">
             <thead><tr><th scope="col">Title</th><th scope="col">Owner</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
             <tbody>
             @foreach (var task in Model.Results.Tasks)

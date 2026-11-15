@@ -15,6 +15,8 @@ internal sealed class IdentityAccountAdministration(ApplicationDbContext db, Use
     private const int PageSize = 25;
     private static readonly DateTimeOffset DisabledUntil = DateTimeOffset.MaxValue;
 
+    public Task<int> CountAsync(CancellationToken cancellationToken) => db.Users.CountAsync(cancellationToken);
+
     public async Task<AccountPage> ListAsync(string search, int page, CancellationToken cancellationToken)
     {
         var accounts = users.Users.AsNoTracking();

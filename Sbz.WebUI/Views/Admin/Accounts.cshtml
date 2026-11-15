@@ -5,12 +5,12 @@
     <h1>Manage users</h1>
     <a asp-action="CreateAccount" class="btn btn-primary">Create account</a>
 </div>
-<form asp-action="Accounts" method="get" class="row g-2 align-items-end mb-4">
+<form asp-action="Accounts" method="get" class="row g-3 align-items-end admin-filter mb-4">
     <div class="col-12 col-sm">
         <label for="user-search" class="form-label">Username</label>
         <input id="user-search" name="search" value="@Model.Search" class="form-control" />
     </div>
-    <div class="col-auto"><button class="btn btn-primary" type="submit">Search</button></div>
+    <div class="col-auto d-flex gap-2"><button class="btn btn-primary" type="submit">Search</button><a class="btn btn-outline-secondary" asp-action="Accounts">Clear filters</a></div>
 </form>
 
 @if (Model.Results.Accounts.Count == 0)
@@ -19,8 +19,8 @@
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
+    <div class="table-responsive admin-table">
+        <table class="table align-middle mb-0">
             <thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
             <tbody>
             @foreach (var account in Model.Results.Accounts)

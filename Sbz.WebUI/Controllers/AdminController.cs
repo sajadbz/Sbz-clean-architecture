@@ -19,11 +19,14 @@ public sealed class AdminController(IAccountAdministration accounts, ITaskAdmini
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var users = await accounts.ListAsync(null, 1, cancellationToken);
-        var allTasks = await tasks.ListAsync(null, false, 1, cancellationToken);
-        var unassigned = await tasks.ListAsync(null, true, 1, cancellationToken);
-        return View(new AdminDashboard(users.Total, allTasks.Total, unassigned.Total));
+        var users = await accounts.CountAsync(cancellationToken);
+        var report = await tasks.ReportAsync(cancellationToken);
+        return View(new AdminDashboard(users, report.Totals));
     }
+
+    [HttpGet("reports")]
+    public async Task<IActionResult> Reports(CancellationToken cancellationToken)
+        => View(await tasks.ReportAsync(cancellationToken));
 
     [HttpGet("users")]
     public async Task<IActionResult> Accounts(string search, int page, CancellationToken cancellationToken)
@@ -96,33 +99,34 @@ public sealed class AdminController(IAccountAdministration accounts, ITaskAdmini
     }
 
     [HttpGet("tasks/create")]
-    public IActionResult CreateTask() => View(nameof(EditTask), new AdminTaskForm());
+    public Task<IActionResult> CreateTask(CancellationToken cancellationToken)
+        => TaskFormAsync(new AdminTaskForm(), cancellationToken);
 
     [HttpPost("tasks/create")]
     public async Task<IActionResult> CreateTask(AdminTaskForm form, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
-            return View(nameof(EditTask), form);
+            return await TaskFormAsync(form, cancellationToken);
 
-        var result = await tasks.CreateAsync(form.Title, form.IsCompleted, form.OwnerName, cancellationToken);
+        var result = await tasks.CreateAsync(form.Title, form.IsCompleted, form.OwnerId, cancellationToken);
         if (result == ManagedTaskResult.Saved)
             return RedirectToAction(nameof(Tasks));
 
         AddTaskErrors(form, result);
-        return View(nameof(EditTask), form);
+        return await TaskFormAsync(form, cancellationToken);
     }
 
     [HttpGet("tasks/{id:int}")]
     public async Task<IActionResult> EditTask([FromRoute] int id, CancellationToken cancellationToken)
     {
         var task = await tasks.FindAsync(id, cancellationToken);
-        return task is null ? NotFound() : View(new AdminTaskForm
+        return task is null ? NotFound() : await TaskFormAsync(new AdminTaskForm
         {
             Id = id,
             Title = task.Title,
-            OwnerName = task.OwnerName,
+            OwnerId = task.OwnerId,
             IsCompleted = task.IsCompleted
-        });
+        }, cancellationToken);
     }
 
     [HttpPost("tasks/{id:int}")]
@@ -130,15 +134,15 @@ public sealed class AdminController(IAccountAdministration accounts, ITaskAdmini
     {
         form.Id = id;
         if (!ModelState.IsValid)
-            return View(form);
-        var result = await tasks.UpdateAsync(id, form.Title, form.IsCompleted, form.OwnerName, cancellationToken);
+            return await TaskFormAsync(form, cancellationToken);
+        var result = await tasks.UpdateAsync(id, form.Title, form.IsCompleted, form.OwnerId, cancellationToken);
         if (result == ManagedTaskResult.Saved)
             return RedirectToAction(nameof(Tasks));
         if (result == ManagedTaskResult.NotFound)
             return NotFound();
 
         AddTaskErrors(form, result);
-        return View(form);
+        return await TaskFormAsync(form, cancellationToken);
     }
 
     [HttpGet("tasks/{id:int}/delete")]
@@ -152,12 +156,18 @@ public sealed class AdminController(IAccountAdministration accounts, ITaskAdmini
     public async Task<IActionResult> DeleteTaskConfirmed([FromRoute] int id, CancellationToken cancellationToken)
         => await tasks.DeleteAsync(id, cancellationToken) ? RedirectToAction(nameof(Tasks)) : NotFound();
 
+    private async Task<IActionResult> TaskFormAsync(AdminTaskForm form, CancellationToken cancellationToken)
+    {
+        form.Owners = await tasks.ListOwnersAsync(cancellationToken);
+        return View(nameof(EditTask), form);
+    }
+
     private void AddTaskErrors(AdminTaskForm form, ManagedTaskResult result)
     {
         if (result == ManagedTaskResult.DuplicateTitle)
             ModelState.AddModelError(nameof(form.Title), "This owner already has a task with that title.");
         else if (result == ManagedTaskResult.InvalidOwner)
-            ModelState.AddModelError(nameof(form.OwnerName), "No account has that username.");
+            ModelState.AddModelError(nameof(form.OwnerId), "Select an existing owner.");
     }
 
     private static int NormalizePage(int page) => Math.Clamp(page, 1, int.MaxValue / 25);

@@ -1,0 +1,43 @@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    var users = action is "Accounts" or "Account" or "CreateAccount" or "DeleteAccount" or "ChangeAccount";
+    var tasks = action is "Tasks" or "CreateTask" or "EditTask" or "DeleteTask" or "DeleteTaskConfirmed";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | Sbz Administration</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-shell" data-shell="admin">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <aside class="admin-sidebar">
+        <a class="admin-brand" asp-action="Index" asp-controller="Admin"><span aria-hidden="true">S</span> Sbz Admin</a>
+        <nav class="admin-nav" aria-label="Administration navigation">
+            <a asp-controller="Admin" asp-action="Index" aria-current="@(action == "Index" ? "page" : null)">Overview</a>
+            <a asp-controller="Admin" asp-action="Accounts" aria-current="@(users ? "page" : null)">Users</a>
+            <a asp-controller="Admin" asp-action="Tasks" aria-current="@(tasks ? "page" : null)">Tasks</a>
+            <a asp-controller="Admin" asp-action="Reports" aria-current="@(action == "Reports" ? "page" : null)">Reports</a>
+        </nav>
+        <a class="admin-back" asp-controller="Home" asp-action="Index">Back to site <span aria-hidden="true">↗</span></a>
+    </aside>
+    <div class="admin-workspace">
+        <header class="admin-toolbar">
+            <span>Administration</span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="admin-username">@User.Identity?.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Sign out</button>
+                </form>
+            </div>
+        </header>
+        <main id="main-content" class="admin-content">
+            @RenderBody()
+        </main>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
