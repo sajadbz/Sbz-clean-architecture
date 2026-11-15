@@ -11,7 +11,7 @@ Bz.ClassFinder<br/>
 NewtonsoftJson<br/>
 NonFactors.Grid.Core.Mvc6<br/>
 X.PagedList<br/>
-SixLabors.ImageSharp<br/>
+Magick.NET<br/>
 SqlServer<br/>
 NLog<br/>
 

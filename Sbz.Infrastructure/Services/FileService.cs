@@ -1,12 +1,9 @@
-﻿using Sbz.Application.Common.Extensions;
+﻿using ImageMagick;
+using Sbz.Application.Common.Extensions;
 using Sbz.Application.Common.Interfaces;
 using Sbz.Application.Common.Models;
 using Sbz.Application.Statics;
 using Microsoft.AspNetCore.Http;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -182,43 +179,34 @@ namespace Sbz.Infrastructure.Services
 
         public async Task ImageResizerAsync(string inputImagePath, string outputImagePath, ImageSize size)
         {
-            inputImagePath = inputImagePath.Replace("/", "\\");
-            outputImagePath = outputImagePath.Replace("/", "\\");
-            var ext = Path.GetExtension(inputImagePath);
+            var outputFormat = GetOutputImageFormat(inputImagePath);
+            if (outputFormat == MagickFormat.Unknown)
+                return;
 
-            using (var image = await Image.LoadAsync(inputImagePath))
-            {
-                ResizeOptions options = new ResizeOptions()
-                {
-                    Mode = ResizeMode.Crop,
-                    Size = new Size(size.Width, size.Height),
-                };
-                image.Mutate(x => x.Resize(options));
-                if (ext.Contains("jpg", StringComparison.OrdinalIgnoreCase))
-                    await image.SaveAsync(outputImagePath, new JpegEncoder { Quality = 90 });
-                else if (ext.Contains("png", StringComparison.OrdinalIgnoreCase))
-                    await image.SaveAsync(outputImagePath, new PngEncoder());
-            }
+            using var image = new MagickImage();
+            using (var source = File.OpenRead(inputImagePath))
+                await image.ReadAsync(source, GetInputImageFormat(source));
+
+            ResizeAndCrop(image, size);
+            ConfigureImageOutput(image, outputFormat);
+            await using var destination = File.Create(outputImagePath);
+            await image.WriteAsync(destination, outputFormat);
         }
+
         public void ImageResizer(string inputImagePath, string outputImagePath, ImageSize size)
         {
-            inputImagePath = inputImagePath.Replace("/", "\\");
-            outputImagePath = outputImagePath.Replace("/", "\\");
-            var ext = Path.GetExtension(inputImagePath);
+            var outputFormat = GetOutputImageFormat(inputImagePath);
+            if (outputFormat == MagickFormat.Unknown)
+                return;
 
-            using (var image = Image.Load(inputImagePath))
-            {
-                ResizeOptions options = new ResizeOptions()
-                {
-                    Mode = ResizeMode.Crop,
-                    Size = new Size(size.Width, size.Height),
-                };
-                image.Mutate(x => x.Resize(options));
-                if (ext.Contains("jpg", StringComparison.OrdinalIgnoreCase))
-                    image.Save(outputImagePath, new JpegEncoder { Quality = 90 });
-                else if (ext.Contains("png", StringComparison.OrdinalIgnoreCase))
-                    image.Save(outputImagePath, new PngEncoder());
-            }
+            using var image = new MagickImage();
+            using (var source = File.OpenRead(inputImagePath))
+                image.Read(source, GetInputImageFormat(source));
+
+            ResizeAndCrop(image, size);
+            ConfigureImageOutput(image, outputFormat);
+            using var destination = File.Create(outputImagePath);
+            image.Write(destination, outputFormat);
         }
 
         public void ImageResizer(string inputImagePath, string outputImagePath, ImageSize[] sizes)
@@ -230,22 +218,17 @@ namespace Sbz.Infrastructure.Services
 
         public void ImageOptimizer(string imagePath)
         {
-            var ext = Path.GetExtension(imagePath);
+            var outputFormat = GetOutputImageFormat(imagePath);
+            if (outputFormat == MagickFormat.Unknown)
+                return;
 
-            using (var image = Image.Load(imagePath))
-            {
-                ResizeOptions options = new ResizeOptions()
-                {
-                    Size = new Size(image.Width, image.Height),
-                    Compand = true
-                };
-                image.Mutate(x => x.Resize(options));
-                if (ext.Contains("jpg", StringComparison.OrdinalIgnoreCase))
-                    image.Save(imagePath, new JpegEncoder { Quality = 90 });
-                else if (ext.Contains("png", StringComparison.OrdinalIgnoreCase))
-                    image.Save(imagePath, new PngEncoder());
+            using var image = new MagickImage();
+            using (var source = File.OpenRead(imagePath))
+                image.Read(source, GetInputImageFormat(source));
 
-            }
+            ConfigureImageOutput(image, outputFormat);
+            using var destination = File.Create(imagePath);
+            image.Write(destination, outputFormat);
         }
 
         public void DeleteImage(UploadType fileType, string fileName)
@@ -357,8 +340,9 @@ namespace Sbz.Infrastructure.Services
                         try
                         {
                             using var stream = file.OpenReadStream();
-                            using var image = Image.Load(stream);
-                            return image.Metadata.DecodedImageFormat is JpegFormat or PngFormat;
+                            using var image = new MagickImage();
+                            image.Read(stream, GetInputImageFormat(stream));
+                            return true;
                         }
                         catch (Exception e)
                         {
@@ -396,6 +380,49 @@ namespace Sbz.Infrastructure.Services
         }
 
         #region Private Methods
+        private static MagickFormat GetOutputImageFormat(string path)
+        {
+            return Path.GetExtension(path).ToLowerInvariant() switch
+            {
+                ".jpg" or ".jpeg" => MagickFormat.Jpeg,
+                ".png" => MagickFormat.Png,
+                _ => MagickFormat.Unknown
+            };
+        }
+
+        private static MagickFormat GetInputImageFormat(Stream source)
+        {
+            Span<byte> header = stackalloc byte[8];
+            var position = source.Position;
+            source.ReadExactly(header);
+            source.Position = position;
+
+            if (header.StartsWith(new byte[] { 0xff, 0xd8, 0xff }))
+                return MagickFormat.Jpeg;
+            if (header.SequenceEqual(new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }))
+                return MagickFormat.Png;
+
+            throw new InvalidDataException("Only JPEG and PNG images are supported.");
+        }
+
+        private static void ResizeAndCrop(MagickImage image, ImageSize size)
+        {
+            var width = checked((uint)size.Width);
+            var height = checked((uint)size.Height);
+            image.Resize(new MagickGeometry(width, height) { FillArea = true });
+            if (width == 0 || height == 0)
+                return;
+
+            image.Crop(width, height, Gravity.Center);
+            image.ResetPage();
+        }
+
+        private static void ConfigureImageOutput(MagickImage image, MagickFormat format)
+        {
+            if (format == MagickFormat.Jpeg)
+                image.Quality = 90;
+        }
+
         private string GenerateImageThumbName(string imageName, string size)
         {
             var s = ImageSizeConvertor(new[] { size });
