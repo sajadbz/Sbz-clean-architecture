@@ -37,7 +37,7 @@ namespace Sbz.Infrastructure.Services
                 smtp.Send(mailMessage);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
