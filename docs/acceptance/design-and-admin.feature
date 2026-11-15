@@ -18,8 +18,9 @@ Feature: Public and administration experiences
   @FD-03 @Ownership
   Scenario: The owner picker lists all accounts and saves the selected owner
     Given user accounts span more than one page of admin search results
-    When I edit an unassigned task
-    Then I can filter the owner dropdown and select an account from the complete list
+    When I open the Owner dropdown in the task form and type into that same field
+    Then the matching accounts appear under that field and I can select one with the mouse or keyboard
+    And canceling the search preserves the current owner
     And I can leave the task unassigned
     And an unknown account identifier is rejected
 
