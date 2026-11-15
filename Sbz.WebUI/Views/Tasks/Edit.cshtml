@@ -1,0 +1,13 @@
+@model TaskForm
+@{
+    ViewData["Title"] = "Edit task";
+}
+
+<h1 class="mb-4">Edit task</h1>
+<div class="card">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card-body">
+        <partial name="_TitleField" model="Model" />
+        <button class="btn btn-primary" type="submit">Save changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
