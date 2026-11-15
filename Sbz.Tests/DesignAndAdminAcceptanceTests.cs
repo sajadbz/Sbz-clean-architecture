@@ -12,19 +12,19 @@ public sealed class DesignAndAdminAcceptanceTests : IDisposable
 {
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"sbz-design-{Guid.NewGuid():N}.db");
 
-    [Fact(DisplayName = "FD-01 | Design | Public site publishes its functional design")]
+    [Fact(DisplayName = "FD-01 | Design | Public navigation stays focused on tasks")]
     [Trait("Category", "Design")]
-    public async Task PublicSitePublishesFunctionalDesign()
+    public async Task PublicSiteDoesNotExposeFunctionalDesign()
     {
         using var app = CreateApp();
         using var guest = CreateClient(app);
         var home = await guest.GetStringAsync("/");
         Assert.Contains("data-shell=\"public\"", home);
-        Assert.Contains("href=\"/design\"", home);
-        var design = await guest.GetStringAsync("/design");
-        Assert.Contains("Functional Design", design);
-        Assert.Contains("FD-06", design);
-        Assert.Contains("design-and-admin.feature", design);
+        Assert.Contains("href=\"/tasks\"", home);
+        Assert.DoesNotContain("Functional Design", home);
+        Assert.DoesNotContain("href=\"/design\"", home);
+        using var formerPage = await guest.GetAsync("/design");
+        Assert.Equal(HttpStatusCode.NotFound, formerPage.StatusCode);
     }
 
     [Fact(DisplayName = "FD-02 | Navigation | Admin uses its own layout")]

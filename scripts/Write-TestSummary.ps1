@@ -1,7 +1,12 @@
 #Requires -Version 7.0
 param(
     [Parameter(Mandatory)][string]$ResultsDirectory,
-    [string]$SummaryPath = $env:GITHUB_STEP_SUMMARY
+    [string]$SummaryPath = $env:GITHUB_STEP_SUMMARY,
+    [string]$DesignPath = (Join-Path $PSScriptRoot '../docs/functional-design.md'),
+    [string]$ScenarioPath = (Join-Path $PSScriptRoot '../docs/acceptance/design-and-admin.feature'),
+    [string]$OwnerPickerOutcome,
+    [string]$ReportingOutcome,
+    [switch]$RequireCoverage
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,6 +50,66 @@ $results = foreach ($file in $files) {
 
 $results = @($results | Where-Object { $null -ne $_ })
 $lines = [System.Collections.Generic.List[string]]::new()
+$requirements = @(Get-Content -LiteralPath $DesignPath | ForEach-Object {
+    if ($_ -match '^## (FD-[0-9]+) (.+)$') {
+        [pscustomobject]@{ Id = $Matches[1]; Title = $Matches[2] }
+    }
+})
+$feature = Get-Content -LiteralPath $ScenarioPath -Raw
+$scenarioIds = @([regex]::Matches($feature, '(?m)^\s*@(FD-[0-9]+)\b') |
+    ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+if (!$requirements.Count -or !$scenarioIds.Count -or
+    @($requirements.Id | Sort-Object -Unique).Count -ne $requirements.Count -or
+    (Compare-Object -ReferenceObject @($requirements.Id) -DifferenceObject $scenarioIds)) {
+    throw 'Functional Design IDs must match the requirement tags in the BDD scenarios.'
+}
+
+$lines.Add('## Functional Design verification')
+$lines.Add('')
+$source = 'https://github.com/sajadbz/Sbz-clean-architecture/blob/master'
+if ($env:GITHUB_SERVER_URL -and $env:GITHUB_REPOSITORY -and $env:GITHUB_SHA) {
+    $source = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/blob/$env:GITHUB_SHA"
+}
+$lines.Add("[Requirements]($source/docs/functional-design.md) · [BDD scenarios]($source/docs/acceptance/design-and-admin.feature)")
+$lines.Add('')
+$lines.Add('| ID | Requirement | Result | Evidence |')
+$lines.Add('| --- | --- | --- | --- |')
+
+$unverified = foreach ($requirement in $requirements) {
+    $id = $requirement.Id
+    $matchingTests = @($results | Where-Object { $_.Test.StartsWith("$id |", [StringComparison]::Ordinal) })
+    $outcomes = @($matchingTests | ForEach-Object { $_.Outcome.ToLowerInvariant() })
+    $evidence = @()
+    if ($matchingTests.Count) {
+        $evidence += "$($matchingTests.Count) .NET test(s)"
+    }
+
+    $absent = $id -ne 'FD-06' -and !$matchingTests.Count
+    if ($id -eq 'FD-03') {
+        $evidence += 'JavaScript owner picker'
+        $outcomes += $OwnerPickerOutcome
+        $absent = $absent -or !$OwnerPickerOutcome
+    }
+    if ($id -eq 'FD-06') {
+        $evidence += 'Report verification'
+        $outcomes += $ReportingOutcome
+        $absent = !$ReportingOutcome
+    }
+
+    if ($outcomes | Where-Object { $_ -in 'failed', 'failure', 'error', 'timeout', 'aborted' }) {
+        $status = 'Failed'
+    } elseif ($absent -or ($outcomes | Where-Object { $_ -notin 'passed', 'success' })) {
+        $status = 'Not verified'
+    } else {
+        $status = 'Passed'
+    }
+
+    $title = $requirement.Title.Replace('|', '&#124;')
+    $lines.Add("| $id | $title | $status | $($evidence -join ', ') |")
+    if ($status -ne 'Passed') { $id }
+}
+$lines.Add('')
+
 $lines.Add('## Automated test results')
 $lines.Add('')
 if (!$results.Count) {
@@ -70,3 +135,7 @@ if (!$results.Count) {
     $lines.Add('</details>')
 }
 [IO.File]::AppendAllText($SummaryPath, ($lines -join "`n") + "`n")
+
+if ($RequireCoverage -and @($unverified | Where-Object { $_ }).Count) {
+    throw "Functional Design requirements did not pass verification: $($unverified -join ', ')."
+}
