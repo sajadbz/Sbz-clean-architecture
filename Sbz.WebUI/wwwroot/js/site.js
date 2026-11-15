@@ -1,4 +1,7 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+const navigationToggle = document.getElementById("navbar-toggle");
+const navigation = document.getElementById("site-navigation");
 
-// Write your JavaScript code.
+navigationToggle.addEventListener("click", () => {
+    const expanded = navigation.classList.toggle("show");
+    navigationToggle.setAttribute("aria-expanded", String(expanded));
+});
