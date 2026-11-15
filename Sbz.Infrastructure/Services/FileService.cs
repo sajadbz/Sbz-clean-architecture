@@ -356,8 +356,9 @@ namespace Sbz.Infrastructure.Services
                     {
                         try
                         {
-                            var img = System.Drawing.Image.FromStream(file.OpenReadStream());
-                            return true;
+                            using var stream = file.OpenReadStream();
+                            using var image = Image.Load(stream);
+                            return image.Metadata.DecodedImageFormat is JpegFormat or PngFormat;
                         }
                         catch (Exception e)
                         {
