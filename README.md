@@ -61,6 +61,6 @@ The tests cover task workflows, cross-account access, administrative actions, se
 
 ## Functional design and tests
 
-Open **Functional Design** on the public site to read the English requirements. The [BDD scenarios](docs/acceptance/design-and-admin.feature) map to the FD identifiers in the acceptance tests. On the [GitHub Actions run page](https://github.com/sajadbz/Sbz-clean-architecture/actions), the test summary shows totals and outcomes. Expand **Optional test details** for category, duration, and timestamps, or download the `test-results` artifact for raw TRX.
+Read the [Functional Design](docs/functional-design.md) and its [BDD scenarios](docs/acceptance/design-and-admin.feature) in the repository. Each [GitHub Actions run](https://github.com/sajadbz/Sbz-clean-architecture/actions) shows a result per requirement. Expand **Optional test details** for category, duration, and timestamps, or download the test-results artifact for raw TRX. The [project wiki](https://github.com/sajadbz/Sbz-clean-architecture/wiki) covers setup, architecture, and administration.
 
 The public layout and administration workspace use Bootstrap. The administration layout draws on the information structure of the [Bootstrap dashboard example](https://getbootstrap.com/docs/5.3/examples/dashboard/) and [Tabler](https://docs.tabler.io/ui/getting-started).

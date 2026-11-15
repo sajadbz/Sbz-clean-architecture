@@ -19,7 +19,6 @@
             <div id="site-navigation" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav site-nav">
                     <li class="nav-item"><a class="nav-link" asp-controller="Tasks" asp-action="Index">Tasks</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Design">Functional Design</a></li>
                     @if (User.IsInRole(Sbz.Application.Accounts.AccountRoles.Administrator))
                     {
                         <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a></li>

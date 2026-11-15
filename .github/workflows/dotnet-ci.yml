@@ -37,12 +37,26 @@ jobs:
         run: dotnet test Sbz.sln --configuration Release --no-build --logger trx --results-directory artifacts/test-results
 
       - name: Test the owner-picker JavaScript
+        id: owner-picker
+        if: success() || failure()
         run: node --test tests/owner-picker.test.cjs
 
-      - name: Publish test summary
+      - name: Verify the Functional Design report
+        id: design-report
+        if: success() || failure()
+        shell: pwsh
+        run: ./scripts/Test-TestSummary.ps1
+
+      - name: Publish the Functional Design and test summary
         if: always()
         shell: pwsh
-        run: ./scripts/Write-TestSummary.ps1 -ResultsDirectory artifacts/test-results
+        env:
+          OWNER_PICKER_OUTCOME: ${{ steps.owner-picker.outcome }}
+          DESIGN_REPORT_OUTCOME: ${{ steps.design-report.outcome }}
+        run: >-
+          ./scripts/Write-TestSummary.ps1 -ResultsDirectory artifacts/test-results
+          -OwnerPickerOutcome $env:OWNER_PICKER_OUTCOME
+          -ReportingOutcome $env:DESIGN_REPORT_OUTCOME -RequireCoverage
 
       - name: Upload test results
         if: always()

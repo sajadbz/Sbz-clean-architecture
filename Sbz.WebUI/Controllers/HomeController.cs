@@ -23,9 +23,6 @@ namespace Sbz.WebUI.Controllers
             return View();
         }
 
-        [HttpGet("/design")]
-        public IActionResult Design() => View();
-
         public IActionResult Privacy()
         {
             return View();
