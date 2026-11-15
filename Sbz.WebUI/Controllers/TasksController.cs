@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -6,10 +8,14 @@ using Sbz.WebUI.Models;
 
 namespace Sbz.WebUI.Controllers;
 
+[Authorize]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("tasks")]
 [AutoValidateAntiforgeryToken]
 public sealed class TasksController(TaskList taskList) : Controller
 {
+    private string OwnerId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
     private const string DuplicateTitleMessage = "A task with this title already exists.";
 
     [HttpGet]
@@ -21,7 +27,7 @@ public sealed class TasksController(TaskList taskList) : Controller
     {
         if (ModelState.IsValid)
         {
-            if (await taskList.CreateAsync(model.Title, cancellationToken) == TaskWriteResult.Saved)
+            if (await taskList.CreateAsync(OwnerId, model.Title, cancellationToken) == TaskWriteResult.Saved)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError(nameof(model.Title), DuplicateTitleMessage);
@@ -31,9 +37,9 @@ public sealed class TasksController(TaskList taskList) : Controller
     }
 
     [HttpGet("{id:int}/edit")]
-    public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Edit([FromRoute] int id, CancellationToken cancellationToken)
     {
-        var task = await taskList.FindAsync(id, cancellationToken);
+        var task = await taskList.FindAsync(OwnerId, id, cancellationToken);
         if (task is null)
             return NotFound();
 
@@ -41,11 +47,11 @@ public sealed class TasksController(TaskList taskList) : Controller
     }
 
     [HttpPost("{id:int}/edit")]
-    public async Task<IActionResult> Edit(int id, TaskForm model, CancellationToken cancellationToken)
+    public async Task<IActionResult> Edit([FromRoute] int id, TaskForm model, CancellationToken cancellationToken)
     {
         if (ModelState.IsValid)
         {
-            var result = await taskList.RenameAsync(id, model.Title, cancellationToken);
+            var result = await taskList.RenameAsync(OwnerId, id, model.Title, cancellationToken);
             if (result == TaskWriteResult.Saved)
                 return RedirectToAction(nameof(Index));
             if (result == TaskWriteResult.NotFound)
@@ -53,7 +59,7 @@ public sealed class TasksController(TaskList taskList) : Controller
 
             ModelState.AddModelError(nameof(model.Title), DuplicateTitleMessage);
         }
-        else if (await taskList.FindAsync(id, cancellationToken) is null)
+        else if (await taskList.FindAsync(OwnerId, id, cancellationToken) is null)
         {
             return NotFound();
         }
@@ -63,26 +69,26 @@ public sealed class TasksController(TaskList taskList) : Controller
     }
 
     [HttpPost("{id:int}/status")]
-    public async Task<IActionResult> SetStatus(int id, [FromForm] bool? completed, CancellationToken cancellationToken)
+    public async Task<IActionResult> SetStatus([FromRoute] int id, [FromForm] bool? completed, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid || !completed.HasValue)
             return BadRequest();
 
-        return await taskList.SetCompletedAsync(id, completed.Value, cancellationToken)
+        return await taskList.SetCompletedAsync(OwnerId, id, completed.Value, cancellationToken)
             ? RedirectToAction(nameof(Index))
             : NotFound();
     }
 
     [HttpGet("{id:int}/delete")]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
-        var task = await taskList.FindAsync(id, cancellationToken);
+        var task = await taskList.FindAsync(OwnerId, id, cancellationToken);
         return task is null ? NotFound() : View(task);
     }
 
     [HttpPost("{id:int}/delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
-        => await taskList.DeleteAsync(id, cancellationToken)
+    public async Task<IActionResult> DeleteConfirmed([FromRoute] int id, CancellationToken cancellationToken)
+        => await taskList.DeleteAsync(OwnerId, id, cancellationToken)
             ? RedirectToAction(nameof(Index))
             : NotFound();
 
@@ -90,7 +96,7 @@ public sealed class TasksController(TaskList taskList) : Controller
         TaskListViewModel model, bool? completed, CancellationToken cancellationToken)
     {
         model.Completed = completed;
-        model.Tasks = await taskList.ListAsync(completed, cancellationToken);
+        model.Tasks = await taskList.ListAsync(OwnerId, completed, cancellationToken);
         return model;
     }
 }

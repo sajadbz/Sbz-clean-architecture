@@ -34,7 +34,7 @@ namespace Sbz.WebUI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.ApplicationServices.InitializeTaskDatabase();
+            app.ApplicationServices.InitializeDatabase();
 
             if (env.IsDevelopment())
             {
@@ -50,6 +50,8 @@ namespace Sbz.WebUI
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 
             app.UseEndpoints(endpoints =>

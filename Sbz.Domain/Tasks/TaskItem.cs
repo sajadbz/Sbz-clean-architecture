@@ -21,4 +21,5 @@ public sealed class TaskItem
     public string Title { get; private set; }
     public string NormalizedTitle { get; private set; }
     public bool IsCompleted { get; private set; }
+    public string OwnerId { get; private set; }
 }

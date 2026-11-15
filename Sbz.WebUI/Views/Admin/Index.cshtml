@@ -1,0 +1,24 @@
+@model AdminDashboard
+@{ ViewData["Title"] = "Administration"; }
+
+<h1 class="mb-4">Administration</h1>
+<div class="row g-3">
+    <section class="col-12 col-sm-4">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h5">Users</h2><p class="fs-3">@Model.Users</p>
+            <a asp-action="Accounts" class="btn btn-primary">Manage users</a>
+        </div></div>
+    </section>
+    <section class="col-12 col-sm-4">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h5">Tasks</h2><p class="fs-3">@Model.Tasks</p>
+            <a asp-action="Tasks" class="btn btn-outline-primary">Manage tasks</a>
+        </div></div>
+    </section>
+    <section class="col-12 col-sm-4">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h5">Unassigned tasks</h2><p class="fs-3">@Model.UnassignedTasks</p>
+            <a asp-action="Tasks" asp-route-unassigned="true" class="btn btn-outline-primary">Review unassigned</a>
+        </div></div>
+    </section>
+</div>

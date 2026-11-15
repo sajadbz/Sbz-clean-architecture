@@ -44,7 +44,7 @@ public sealed class TaskListTests : IDisposable
     public async Task CreatePersistsAcrossRestartsAndRejectsNormalizedDuplicates()
     {
         using (var app = CreateApp())
-        using (var client = CreateClient(app))
+        using (var client = await CreateMemberClientAsync(app))
         {
             Assert.Contains("No tasks to display.", await client.GetStringAsync("/tasks"));
             await CreateTaskAsync(client, "Review architecture");
@@ -52,6 +52,7 @@ public sealed class TaskListTests : IDisposable
 
         using var reopened = CreateApp();
         using var reopenedClient = CreateClient(reopened);
+        await LoginAsync(reopenedClient, "member");
         Assert.Contains("Review architecture", await reopenedClient.GetStringAsync("/tasks"));
 
         using var duplicate = await PostAsync(reopenedClient, "/tasks", "/tasks", "Title", " REVIEW ARCHITECTURE ");
@@ -64,7 +65,7 @@ public sealed class TaskListTests : IDisposable
     public async Task EditAllowsKeepingTheTitleAndRejectsAnotherTasksTitle()
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         var taskId = await CreateTaskAsync(client, "First task");
         await CreateTaskAsync(client, "Second task");
         var edit = $"/tasks/{taskId}/edit";
@@ -89,7 +90,7 @@ public sealed class TaskListTests : IDisposable
     public async Task TasksCanBeCompletedFilteredAndReopened()
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         var id = await CreateTaskAsync(client, "Track this task");
         var status = $"/tasks/{id}/status";
 
@@ -108,7 +109,7 @@ public sealed class TaskListTests : IDisposable
     public async Task DeleteRequiresConfirmationAndRemovesTheTask()
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         var id = await CreateTaskAsync(client, "Delete this task");
         var delete = $"/tasks/{id}/delete";
 
@@ -132,7 +133,7 @@ public sealed class TaskListTests : IDisposable
     public async Task MutatingRoutesRequireAnAntiforgeryToken(string route)
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         using var form = new FormUrlEncodedContent(new Dictionary<string, string>());
         using var response = await client.PostAsync(route, form);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -145,7 +146,7 @@ public sealed class TaskListTests : IDisposable
     public async Task WritesToMissingTasksReturnNotFound(string route, string field, string value)
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         using var response = await PostAsync(client, "/tasks", route, field, value);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -154,7 +155,7 @@ public sealed class TaskListTests : IDisposable
     public async Task InvalidFormsDoNotMutateTheTask()
     {
         using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var client = await CreateMemberClientAsync(app);
         var id = await CreateTaskAsync(client, "Keep this title");
         var edit = $"/tasks/{id}/edit";
 
@@ -190,8 +191,19 @@ public sealed class TaskListTests : IDisposable
             await command.ExecuteNonQueryAsync();
         }
 
-        using var app = CreateApp();
-        using var client = CreateClient(app);
+        using var app = CreateApp(withAdmin: true);
+        using var client = await CreateMemberClientAsync(app);
+        Assert.DoesNotContain("Existing task", await client.GetStringAsync("/tasks"));
+        using var admin = CreateClient(app);
+        await LoginAsync(admin, "administrator");
+        Assert.Contains("Existing task", await admin.GetStringAsync("/admin/tasks?unassigned=true"));
+        using var assigned = await SubmitAsync(admin, "/admin/tasks/1", "/admin/tasks/1", new()
+        {
+            ["Title"] = "Existing task",
+            ["OwnerName"] = "member",
+            ["IsCompleted"] = "false"
+        });
+        Assert.Equal(HttpStatusCode.Redirect, assigned.StatusCode);
         Assert.Contains("Existing task", await client.GetStringAsync("/tasks?completed=false"));
         using var completed = await PostAsync(client, "/tasks", "/tasks/1/status", "completed", "true");
         Assert.Equal(HttpStatusCode.Redirect, completed.StatusCode);
@@ -200,16 +212,16 @@ public sealed class TaskListTests : IDisposable
 
     public void Dispose() => File.Delete(databasePath);
 
-    private TaskWebApplicationFactory CreateApp() => new(ConnectionString);
+    private TaskWebApplicationFactory CreateApp(bool withAdmin = false) => new(ConnectionString, withAdmin);
 
-    private static HttpClient CreateClient(WebApplicationFactory<Program> app)
+    internal static HttpClient CreateClient(WebApplicationFactory<Program> app)
         => app.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost"),
             AllowAutoRedirect = false
         });
 
-    private static async Task<int> CreateTaskAsync(HttpClient client, string title)
+    internal static async Task<int> CreateTaskAsync(HttpClient client, string title)
     {
         using var response = await PostAsync(client, "/tasks", "/tasks", "Title", title);
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
@@ -221,31 +233,62 @@ public sealed class TaskListTests : IDisposable
         return int.Parse(editLinks[^1].Groups[1].Value);
     }
 
-    private static async Task<HttpResponseMessage> PostAsync(
+    internal static Task<HttpResponseMessage> PostAsync(
         HttpClient client, string formPage, string route, string field = null, string value = null)
+    {
+        return SubmitAsync(client, formPage, route, field is null ? new() : new() { [field] = value });
+    }
+
+    internal static async Task<HttpResponseMessage> SubmitAsync(HttpClient client, string formPage, string route, Dictionary<string, string> fields)
     {
         var page = await client.GetStringAsync(formPage);
         var token = Regex.Match(page, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"");
         Assert.True(token.Success, "The form must include an antiforgery token.");
 
-        var fields = new Dictionary<string, string>
-        {
-            ["__RequestVerificationToken"] = WebUtility.HtmlDecode(token.Groups[1].Value)
-        };
-
-        if (field is not null)
-            fields[field] = value;
-
+        fields["__RequestVerificationToken"] = WebUtility.HtmlDecode(token.Groups[1].Value);
         using var form = new FormUrlEncodedContent(fields);
         return await client.PostAsync(route, form);
     }
 
-    private sealed class TaskWebApplicationFactory(string connectionString) : WebApplicationFactory<Program>
+    internal const string TestPassword = "Local sample passphrase 91!";
+
+    internal static async Task<HttpClient> CreateMemberClientAsync(WebApplicationFactory<Program> app, string name = "member")
+    {
+        var client = CreateClient(app);
+        using var registered = await SubmitAsync(client, "/account/register", "/account/register", new()
+        {
+            ["UserName"] = name,
+            ["Password"] = TestPassword,
+            ["ConfirmPassword"] = TestPassword
+        });
+        Assert.Equal(HttpStatusCode.Redirect, registered.StatusCode);
+        return client;
+    }
+
+    internal static async Task LoginAsync(HttpClient client, string name)
+    {
+        using var response = await SubmitAsync(client, "/account/login", "/account/login", new()
+        {
+            ["UserName"] = name,
+            ["Password"] = TestPassword
+        });
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+    }
+
+    internal sealed class TaskWebApplicationFactory(string connectionString, bool withAdmin = false) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
-                new Dictionary<string, string> { ["ConnectionStrings:Tasks"] = connectionString }));
+            builder.ConfigureAppConfiguration((_, configuration) =>
+            {
+                var settings = new Dictionary<string, string> { ["ConnectionStrings:Tasks"] = connectionString };
+                if (withAdmin)
+                {
+                    settings["AdminBootstrap:UserName"] = "administrator";
+                    settings["AdminBootstrap:Password"] = TestPassword;
+                }
+                configuration.AddInMemoryCollection(settings);
+            });
         }
     }
 }
