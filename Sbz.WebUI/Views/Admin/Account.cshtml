@@ -1,0 +1,35 @@
+@using System.Security.Claims
+@model Sbz.Application.Accounts.ManagedAccount
+@{ ViewData["Title"] = "Manage account"; }
+
+<h1 class="mb-3">Manage account</h1>
+<div class="card"><div class="card-body">
+    <h2 class="h5">@Model.UserName</h2>
+    <p>@(Model.IsAdministrator ? "Administrator" : "User") · @(Model.IsDisabled ? "Disabled" : Model.IsLocked ? "Locked" : "Active")</p>
+    @if (Model.Id == User.FindFirstValue(ClaimTypes.NameIdentifier))
+    {
+        <p>This is your account. Another administrator can manage it.</p>
+    }
+    else
+    {
+        <form asp-action="ChangeAccount" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 mb-3">
+            @if (Model.IsDisabled)
+            {
+                <button class="btn btn-outline-success" name="action" value="Enable">Enable</button>
+            }
+            else
+            {
+                <button class="btn btn-outline-warning" name="action" value="Disable">Disable</button>
+                @if (Model.IsLocked)
+                {
+                    <button class="btn btn-outline-success" name="action" value="Unlock">Unlock</button>
+                }
+            }
+            <button class="btn btn-outline-primary" name="action" value="@(Model.IsAdministrator ? "Demote" : "Promote")">
+                @(Model.IsAdministrator ? "Remove administrator role" : "Make administrator")
+            </button>
+            <a asp-action="DeleteAccount" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete account</a>
+        </form>
+    }
+    <a asp-action="Accounts" class="btn btn-outline-secondary">Back to users</a>
+</div></div>

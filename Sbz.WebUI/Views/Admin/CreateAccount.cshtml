@@ -1,0 +1,11 @@
+@model RegistrationForm
+@{ ViewData["Title"] = "Create account"; }
+
+<h1 class="mb-3">Create account</h1>
+<form asp-action="CreateAccount" method="post" class="card card-body">
+    <partial name="_RegistrationFields" model="Model" />
+    <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-primary" type="submit">Create account</button>
+        <a asp-action="Accounts" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

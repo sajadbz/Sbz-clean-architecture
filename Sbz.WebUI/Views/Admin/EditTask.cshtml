@@ -1,0 +1,28 @@
+@model AdminTaskForm
+@{
+    var creating = Model.Id == 0;
+    ViewData["Title"] = creating ? "New task" : "Edit task";
+}
+
+<h1 class="mb-3">@ViewData["Title"]</h1>
+<form asp-action="@(creating ? "CreateTask" : "EditTask")" asp-route-id="@(creating ? null : Model.Id.ToString())" method="post" class="card card-body">
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" required />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="OwnerName" class="form-label"></label>
+        <input asp-for="OwnerName" class="form-control" aria-describedby="owner-help" />
+        <div id="owner-help" class="form-text">Leave empty to keep the task unassigned.</div>
+        <span asp-validation-for="OwnerName" class="text-danger"></span>
+    </div>
+    <div class="form-check mb-3">
+        <input asp-for="IsCompleted" class="form-check-input" />
+        <label asp-for="IsCompleted" class="form-check-label"></label>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Save changes</button>
+        <a asp-action="Tasks" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

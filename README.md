@@ -1,27 +1,52 @@
 # Sbz Clean Architecture
 
-An ASP.NET Core MVC sample for managing a shared task list. Create, rename, and delete tasks, mark them completed or reopen them, and filter the list by status. Titles are unique in the list, ignoring case and surrounding whitespace.
+An ASP.NET Core MVC sample with username/password accounts, private task lists, and a Bootstrap administration panel. Users can create, rename, complete, reopen, filter, and delete their own tasks. Titles are unique per owner, ignoring case and surrounding whitespace.
 
 ## Run locally
 
-Use the .NET 10 SDK.
+Use the .NET 10 SDK and the HTTPS launch profile. Sign-in cookies require HTTPS.
 
-```shell
+```powershell
 dotnet run --project Sbz.WebUI
 dotnet test Sbz.sln
 ```
 
-Open **Tasks** from the navigation. The app applies EF Core migrations on startup. SQLite uses `sbz-tasks.db` in the app's working directory by default. Set `ConnectionStrings__Tasks` to use a different database. The first migration upgrades task databases created by the earlier create/list preview and preserves existing tasks.
+Open **Register** for a regular account, then **Tasks**. SQLite uses `sbz-tasks.db` in the app's working directory by default. Set `ConnectionStrings__Tasks` to use a different database. The app applies EF Core migrations on startup. Existing tasks are preserved and appear under **Admin → Manage tasks → Unassigned only** until assigned to a username. Back up an existing database before updating. Reverting to the shared-list schema requires that backup.
 
 Set `AutoMapper__LicenseKey` in the app environment when using the existing AutoMapper configuration.
 
+## First administrator
+
+Choose an unused username and a strong password. Set the bootstrap values before starting the app:
+
+```powershell
+$env:AdminBootstrap__UserName = Read-Host 'Administrator username'
+$env:AdminBootstrap__Password = Read-Host 'Administrator password' -MaskInput
+dotnet run --project Sbz.WebUI
+```
+
+After the account is provisioned, stop the app and remove the bootstrap values from your environment:
+
+```powershell
+Remove-Item Env:AdminBootstrap__UserName, Env:AdminBootstrap__Password
+```
+
+Start the app again and sign in with that account. Bootstrap creates a new administrator account and refuses to promote an existing regular user. Keep the password out of source control.
+
+## Administration
+
+- The dashboard shows account, task, and unassigned-task counts.
+- Administrators can search and create user accounts, grant or remove the administrator role, disable or enable accounts, unlock accounts, and delete other accounts. Account deletion preserves the user's tasks as unassigned.
+- Administrators can search, create, edit, complete, delete, assign, and reassign tasks. Leaving the owner blank makes the task visible in the admin panel only.
+- Role and account-status changes revoke the affected account's existing sessions. Administrators cannot use the panel to modify or delete their own account.
+
 ## Project responsibilities
 
-| Project | Responsibility in the tasks feature |
+| Project | Responsibility |
 | --- | --- |
-| `Sbz.Domain` | Validates task titles and defines the normalized title. |
-| `Sbz.Application` | Exposes task operations and defines the storage contract. |
-| `Sbz.Infrastructure` | Implements the contract with EF Core and SQLite. A unique index protects creates and renames from concurrent duplicates. |
-| `Sbz.WebUI` | Provides the Bootstrap UI, MVC form validation, antiforgery, and confirmation for deletes. |
+| `Sbz.Domain` | Validates and normalizes task titles. |
+| `Sbz.Application` | Defines task operations and administration contracts. |
+| `Sbz.Infrastructure` | Implements the contracts with EF Core and SQLite and persists ASP.NET Core Identity accounts and roles. |
+| `Sbz.WebUI` | Handles authentication, authorization, Bootstrap views, MVC validation, and antiforgery. |
 
-The tests cover title rules and the MVC and SQLite paths for CRUD, status changes, filters, invalid requests, and upgrading an existing database.
+The tests cover task workflows, cross-account access, administrative actions, session revocation, and upgrading an existing database. GitHub Actions builds and tests the solution on pull requests.

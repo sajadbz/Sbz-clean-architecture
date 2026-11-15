@@ -1,0 +1,11 @@
+@model Sbz.Application.Tasks.ManagedTask
+@{ ViewData["Title"] = "Delete task"; }
+
+<h1 class="mb-3">Delete task</h1>
+<form asp-action="DeleteTaskConfirmed" asp-route-id="@Model.Id" method="post" class="card card-body border-danger">
+    <p>Delete <strong>@Model.Title</strong>? This action cannot be undone.</p>
+    <div class="d-flex gap-2">
+        <button class="btn btn-danger" type="submit">Delete task</button>
+        <a asp-action="Tasks" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

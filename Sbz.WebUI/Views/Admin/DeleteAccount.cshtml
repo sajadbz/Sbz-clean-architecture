@@ -1,0 +1,11 @@
+@model Sbz.Application.Accounts.ManagedAccount
+@{ ViewData["Title"] = "Delete account"; }
+
+<h1 class="mb-3">Delete account</h1>
+<form asp-action="ChangeAccount" asp-route-id="@Model.Id" method="post" class="card card-body border-danger">
+    <p>Delete <strong>@Model.UserName</strong>? Their tasks will remain in the unassigned list.</p>
+    <div class="d-flex gap-2">
+        <button class="btn btn-danger" type="submit" name="action" value="Delete">Delete account</button>
+        <a asp-action="Account" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
