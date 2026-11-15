@@ -9,7 +9,7 @@ Visitors can open the public home page and navigate to their task list. The appl
 Administrators use a separate responsive layout with navigation to Users, Tasks, and Reports, and a link back to the public site. The application restricts the administration workspace to users with the Administrator role.
 
 ## FD-03 Task ownership
-The administration task form lists every account in a searchable owner dropdown. Filtering preserves the current selection. Administrators can leave a task unassigned, and the server rejects unknown owner IDs. Titles are unique per owner. A user can access tasks only when assigned as their owner.
+The administration task form shows one editable Owner dropdown. Opening the field lists all accounts. Typing in the same field filters the open list. A click or the arrow keys and Enter select an owner. Escape or leaving the field without accepting a choice preserves the current owner. Administrators can leave a task unassigned, and the server rejects unknown owner IDs. Titles are unique per owner. A user can access tasks only when assigned as their owner.
 
 ## FD-04 Clear filters
 On Users and Tasks, Clear filters removes the search query, clears the unassigned filter where applicable, and returns to page one.

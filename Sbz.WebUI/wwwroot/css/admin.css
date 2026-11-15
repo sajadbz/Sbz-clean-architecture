@@ -63,3 +63,22 @@
 @media (max-width: 360px) {
   .metric-grid { grid-template-columns: 1fr; }
 }
+
+.owner-combobox { position: relative; }
+.owner-popup {
+  position: absolute;
+  inset: calc(100% + .25rem) 0 auto;
+  z-index: 10;
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: .25rem;
+  border: 1px solid var(--admin-stroke);
+  border-radius: .55rem;
+  background: #fff;
+  box-shadow: 0 .55rem 1.3rem #17254126;
+}
+.owner-option, .owner-status { padding: .46rem .65rem; }
+.owner-option { border-radius: .3rem; cursor: pointer; overflow-wrap: anywhere; }
+.owner-option:hover, .owner-option[aria-selected="true"] { background: #e7eeff; color: #152c69; }
+.owner-status { color: #52637a; }
+.owner-status:empty { display: none; }

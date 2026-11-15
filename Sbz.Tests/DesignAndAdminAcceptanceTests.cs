@@ -57,7 +57,10 @@ public sealed class DesignAndAdminAcceptanceTests : IDisposable
         }
 
         var page = await admin.GetStringAsync("/admin/tasks/create");
-        Assert.Contains("data-owner-search", page);
+        Assert.Contains("role=\"combobox\"", page);
+        Assert.Contains("role=\"listbox\"", page);
+        Assert.Single(Regex.Matches(page, "role=\"combobox\""));
+        Assert.DoesNotContain("Search owners</label>", page);
         Assert.Contains("<select", page);
         Assert.Contains(">Unassigned</option>", page);
         Assert.Contains(">account-00</option>", page);

@@ -12,12 +12,6 @@
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
     <div class="mb-3" data-owner-picker>
-        <div class="mb-2" data-owner-search hidden>
-            <label for="owner-search" class="form-label">Search owners</label>
-            <input id="owner-search" class="form-control" type="search" autocomplete="off"
-                   placeholder="Filter by username" aria-controls="OwnerId" />
-            <div class="form-text" data-owner-matches role="status"></div>
-        </div>
         <label asp-for="OwnerId" class="form-label"></label>
         <select asp-for="OwnerId" class="form-select" aria-describedby="owner-help owner-error">
             <option value="">Unassigned</option>
@@ -26,6 +20,16 @@
                 <option value="@owner.Id">@owner.UserName</option>
             }
         </select>
+        <div class="owner-combobox" data-owner-combobox hidden>
+            <input id="owner-combobox" class="form-select" type="text" role="combobox"
+                   aria-autocomplete="list" aria-expanded="false" aria-controls="owner-options"
+                   aria-describedby="owner-help owner-error" autocomplete="off" spellcheck="false"
+                   placeholder="Select or search for an owner" />
+            <div class="owner-popup" data-owner-popup hidden>
+                <div id="owner-options" role="listbox" aria-label="Owner options"></div>
+                <p class="owner-status mb-0" data-owner-status role="status"></p>
+            </div>
+        </div>
         <div id="owner-help" class="form-text">Select Unassigned to keep this task visible only to administrators.</div>
         <span asp-validation-for="OwnerId" id="owner-error" class="text-danger" role="alert"></span>
     </div>
