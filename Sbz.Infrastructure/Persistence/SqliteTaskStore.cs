@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,9 +14,11 @@ internal sealed class SqliteTaskStore(ApplicationDbContext db) : ITaskStore
 {
     private const int SqliteUniqueConstraint = 2067;
 
-    public async Task<TaskWriteResult> AddAsync(TaskItem item, CancellationToken cancellationToken)
+    public async Task<TaskWriteResult> AddAsync(string ownerId, TaskItem item, CancellationToken cancellationToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
         db.Tasks.Add(item);
+        db.Entry(item).Property(task => task.OwnerId).CurrentValue = ownerId;
         try
         {
             await db.SaveChangesAsync(cancellationToken);
@@ -29,11 +32,11 @@ internal sealed class SqliteTaskStore(ApplicationDbContext db) : ITaskStore
         }
     }
 
-    public async Task<TaskWriteResult> RenameAsync(int id, TaskItem title, CancellationToken cancellationToken)
+    public async Task<TaskWriteResult> RenameAsync(string ownerId, int id, TaskItem title, CancellationToken cancellationToken)
     {
         try
         {
-            var updated = await db.Tasks.Where(task => task.Id == id).ExecuteUpdateAsync(
+            var updated = await OwnedBy(ownerId).Where(task => task.Id == id).ExecuteUpdateAsync(
                 setters => setters.SetProperty(task => task.Title, title.Title)
                                   .SetProperty(task => task.NormalizedTitle, title.NormalizedTitle),
                 cancellationToken);
@@ -45,22 +48,30 @@ internal sealed class SqliteTaskStore(ApplicationDbContext db) : ITaskStore
         }
     }
 
-    public async Task<bool> SetCompletedAsync(int id, bool completed, CancellationToken cancellationToken)
+    public async Task<bool> SetCompletedAsync(string ownerId, int id, bool completed, CancellationToken cancellationToken)
     {
-        return await db.Tasks.Where(task => task.Id == id).ExecuteUpdateAsync(
+        return await OwnedBy(ownerId).Where(task => task.Id == id).ExecuteUpdateAsync(
             setters => setters.SetProperty(task => task.IsCompleted, completed), cancellationToken) != 0;
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
-        => await db.Tasks.Where(task => task.Id == id).ExecuteDeleteAsync(cancellationToken) != 0;
+    public async Task<bool> DeleteAsync(string ownerId, int id, CancellationToken cancellationToken)
+        => await OwnedBy(ownerId).Where(task => task.Id == id).ExecuteDeleteAsync(cancellationToken) != 0;
 
-    public Task<TaskSummary> FindAsync(int id, CancellationToken cancellationToken)
-        => Project(db.Tasks.Where(task => task.Id == id)).SingleOrDefaultAsync(cancellationToken);
+    public Task<TaskSummary> FindAsync(string ownerId, int id, CancellationToken cancellationToken)
+        => Project(OwnedBy(ownerId).Where(task => task.Id == id)).SingleOrDefaultAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<TaskSummary>> ListAsync(bool? completed, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<TaskSummary>> ListAsync(string ownerId, bool? completed, CancellationToken cancellationToken)
     {
-        var tasks = completed.HasValue ? db.Tasks.Where(task => task.IsCompleted == completed.Value) : db.Tasks;
+        var tasks = OwnedBy(ownerId);
+        if (completed.HasValue)
+            tasks = tasks.Where(task => task.IsCompleted == completed.Value);
         return await Project(tasks.OrderBy(task => task.Id)).ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<TaskItem> OwnedBy(string ownerId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
+        return db.Tasks.Where(task => task.OwnerId == ownerId);
     }
 
     private static IQueryable<TaskSummary> Project(IQueryable<TaskItem> tasks)

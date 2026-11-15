@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -596,10 +597,11 @@ namespace Sbz.Application.Common.Extensions
         /// <param name="key">Encryption key</param>
         /// <returns>A string representing a byte array separated by a minus sign.</returns>
         /// <exception cref="ArgumentException">Occurs when stringToEncrypt or key is null or empty.</exception>
+        [SupportedOSPlatform("windows")]
         public static string Encrypt(this string stringToEncrypt, string key)
         {
             var cspParameter = new CspParameters { KeyContainerName = key };
-            var rsaServiceProvider = new RSACryptoServiceProvider(cspParameter) { PersistKeyInCsp = true };
+            using var rsaServiceProvider = new RSACryptoServiceProvider(cspParameter) { PersistKeyInCsp = true };
             byte[] bytes = rsaServiceProvider.Encrypt(Encoding.UTF8.GetBytes(stringToEncrypt), true);
             return BitConverter.ToString(bytes);
         }
@@ -612,10 +614,11 @@ namespace Sbz.Application.Common.Extensions
         /// <param name="key">Decryption key.</param>
         /// <returns>The decrypted string or null if decryption failed.</returns>
         /// <exception cref="ArgumentException">Occurs when stringToDecrypt or key is null or empty.</exception>
+        [SupportedOSPlatform("windows")]
         public static string Decrypt(this string stringToDecrypt, string key)
         {
             var cspParamters = new CspParameters { KeyContainerName = key };
-            var rsaServiceProvider = new RSACryptoServiceProvider(cspParamters) { PersistKeyInCsp = true };
+            using var rsaServiceProvider = new RSACryptoServiceProvider(cspParamters) { PersistKeyInCsp = true };
             string[] decryptArray = stringToDecrypt.Split(new[] { "-" }, StringSplitOptions.None);
             byte[] decryptByteArray = Array.ConvertAll(decryptArray,
                 (s => Convert.ToByte(byte.Parse(s, NumberStyles.HexNumber))));
@@ -1113,8 +1116,10 @@ namespace Sbz.Application.Common.Extensions
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static bool IsNullEmptyOrWhitespace([NotNullWhen(true)] this string? input) =>
-            input.IsNull() || input!.IsEmpty() || input!.IsWhitespace();
+#nullable enable annotations
+        public static bool IsNullEmptyOrWhitespace([NotNullWhen(false)] this string? input) =>
+            input is null || input.IsEmpty() || input.IsWhitespace();
+#nullable restore annotations
 
         /// <summary>
         /// Will indicate if the string is empty or not.
