@@ -1,4 +1,3 @@
-﻿using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sbz.Application.Common.Interfaces;
@@ -20,7 +19,7 @@ namespace Sbz.Infrastructure
             services.AddTransient<IDateTime, DateTimeService>();
             services.AddTransient<IFileService, FileService>();
 
-            services.AddAutoMapper(typeof(MappingProfile).Assembly);
+            services.AddAutoMapper(options => options.LicenseKey = configuration["AutoMapper:LicenseKey"], typeof(MappingProfile).Assembly);
             return services;
         }
     }
