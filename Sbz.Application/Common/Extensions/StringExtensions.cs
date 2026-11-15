@@ -7,7 +7,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using Ganss.XSS;
+using Ganss.Xss;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
