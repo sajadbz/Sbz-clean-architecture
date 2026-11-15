@@ -7,7 +7,7 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="15.1.0" />
 		<PackageReference Include="NLog" Version="4.7.9" />
 	</ItemGroup>
