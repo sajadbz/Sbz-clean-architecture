@@ -1,0 +1,56 @@
+@model TaskListViewModel
+@{
+    ViewData["Title"] = "Tasks";
+}
+
+<h1 class="mb-4">Tasks</h1>
+
+<section class="card mb-4" aria-labelledby="new-task-heading">
+    <div class="card-body">
+        <h2 id="new-task-heading" class="h5">New task</h2>
+        <form asp-action="Index" method="post">
+            <partial name="_TitleField" model="Model" />
+            <button type="submit" class="btn btn-primary">Add task</button>
+        </form>
+    </div>
+</section>
+
+<nav class="nav nav-pills gap-1 mb-3" aria-label="Filter tasks">
+    <a asp-action="Index" class="nav-link @(Model.Completed is null ? "active" : null)"
+       aria-current="@(Model.Completed is null ? "page" : null)">All</a>
+    <a asp-action="Index" asp-route-completed="false" class="nav-link @(Model.Completed == false ? "active" : null)"
+       aria-current="@(Model.Completed == false ? "page" : null)">Open</a>
+    <a asp-action="Index" asp-route-completed="true" class="nav-link @(Model.Completed == true ? "active" : null)"
+       aria-current="@(Model.Completed == true ? "page" : null)">Completed</a>
+</nav>
+
+@if (Model.Tasks.Count == 0)
+{
+    <p class="alert alert-light border" role="status">No tasks to display.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var task in Model.Tasks)
+        {
+            <li class="list-group-item d-flex flex-column flex-sm-row gap-2 align-items-sm-center justify-content-between">
+                <div class="text-break">
+                    <span class="fw-semibold">@task.Title</span>
+                    <span class="badge @(task.IsCompleted ? "text-bg-success" : "text-bg-secondary")">
+                        @(task.IsCompleted ? "Completed" : "Open")
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <form asp-action="SetStatus" asp-route-id="@task.Id" method="post">
+                        <input type="hidden" name="completed" value="@(!task.IsCompleted ? "true" : "false")" />
+                        <button type="submit" class="btn btn-outline-success btn-sm">
+                            @(task.IsCompleted ? "Reopen" : "Complete")
+                        </button>
+                    </form>
+                    <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-outline-primary btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-outline-danger btn-sm">Delete</a>
+                </div>
+            </li>
+        }
+    </ul>
+}
