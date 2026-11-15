@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Sbz.Application.Accounts;
 using Sbz.Application.Tasks;
@@ -5,7 +7,7 @@ using Sbz.Domain.Tasks;
 
 namespace Sbz.WebUI.Models;
 
-public sealed record AdminDashboard(int Users, int Tasks, int UnassignedTasks);
+public sealed record AdminDashboard(int Users, TaskTotals Tasks);
 public sealed record AdminAccountsList(AccountPage Results, string Search, int Page);
 public sealed record AdminTasksList(ManagedTaskPage Results, string Search, bool Unassigned, int Page);
 
@@ -19,7 +21,9 @@ public sealed class AdminTaskForm
     [Display(Name = "Completed")]
     public bool IsCompleted { get; set; }
 
-    [Display(Name = "Owner username")]
+    [Display(Name = "Owner")]
     [StringLength(256)]
-    public string OwnerName { get; set; }
+    public string OwnerId { get; set; }
+
+    public IReadOnlyList<TaskOwnerOption> Owners { get; internal set; } = Array.Empty<TaskOwnerOption>();
 }

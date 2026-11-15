@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Functional Design";
+}
+
+<header class="design-heading">
+    <h1>Functional Design</h1>
+    <p>How the public site, administration workspace, and test reports should behave.</p>
+</header>
+<div class="design-grid">
+    <section class="design-card" id="fd-01">
+        <h2>FD-01 · Public site</h2>
+        <p>Visitors can open the home page and read this design in English. Signed-in users can reach their private task list from the site navigation.</p>
+    </section>
+    <section class="design-card" id="fd-02">
+        <h2>FD-02 · Administration layout</h2>
+        <p>Administrators have a separate responsive workspace with shortcuts to Users, Tasks, and Reports, and a link back to the public site.</p>
+    </section>
+    <section class="design-card" id="fd-03">
+        <h2>FD-03 · Task ownership</h2>
+        <p>The task form lists all accounts in a searchable dropdown. It keeps the existing selection while filtering and allows Unassigned. The server rejects unknown owners and enforces unique task titles per owner.</p>
+    </section>
+    <section class="design-card" id="fd-04">
+        <h2>FD-04 · Clear filters</h2>
+        <p>On Users and Tasks, Clear filters removes the search query, resets the unassigned filter where present, and returns to page one.</p>
+    </section>
+    <section class="design-card" id="fd-05">
+        <h2>FD-05 · Dashboard and reports</h2>
+        <p>The dashboard summarizes live accounts and tasks. Reports show open, completed, and unassigned tasks plus the ten owners with the most assigned tasks. Only administrators can access these views.</p>
+    </section>
+    <section class="design-card" id="fd-06">
+        <h2>FD-06 · Verification on GitHub</h2>
+        <p>Each pull request runs the automated tests. The run summary shows outcomes. Expand test details to see the scenario, category, duration, and start and end times when available. The raw TRX file is downloadable from the run.</p>
+        <div class="d-flex flex-wrap gap-3">
+            <a href="https://github.com/sajadbz/Sbz-clean-architecture/blob/master/docs/acceptance/design-and-admin.feature">BDD scenarios</a>
+            <a href="https://github.com/sajadbz/Sbz-clean-architecture/actions">GitHub Actions</a>
+        </div>
+    </section>
+</div>

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Sbz.WebUI.Models;
 using System;
@@ -22,6 +22,9 @@ namespace Sbz.WebUI.Controllers
         {
             return View();
         }
+
+        [HttpGet("/design")]
+        public IActionResult Design() => View();
 
         public IActionResult Privacy()
         {

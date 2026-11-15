@@ -1,24 +1,28 @@
 @model AdminDashboard
-@{ ViewData["Title"] = "Administration"; }
+@{ ViewData["Title"] = "Overview"; }
 
-<h1 class="mb-4">Administration</h1>
-<div class="row g-3">
-    <section class="col-12 col-sm-4">
-        <div class="card h-100"><div class="card-body">
-            <h2 class="h5">Users</h2><p class="fs-3">@Model.Users</p>
-            <a asp-action="Accounts" class="btn btn-primary">Manage users</a>
-        </div></div>
-    </section>
-    <section class="col-12 col-sm-4">
-        <div class="card h-100"><div class="card-body">
-            <h2 class="h5">Tasks</h2><p class="fs-3">@Model.Tasks</p>
-            <a asp-action="Tasks" class="btn btn-outline-primary">Manage tasks</a>
-        </div></div>
-    </section>
-    <section class="col-12 col-sm-4">
-        <div class="card h-100"><div class="card-body">
-            <h2 class="h5">Unassigned tasks</h2><p class="fs-3">@Model.UnassignedTasks</p>
-            <a asp-action="Tasks" asp-route-unassigned="true" class="btn btn-outline-primary">Review unassigned</a>
-        </div></div>
-    </section>
+<div class="admin-heading">
+    <h1>Overview</h1>
+    <p>Monitor task progress and manage account access.</p>
 </div>
+<dl class="metric-grid">
+    <div class="metric-card"><dt>Accounts</dt><dd>@Model.Users</dd><dd class="metric-link"><a asp-action="Accounts">Manage users</a></dd></div>
+    <div class="metric-card"><dt>Open tasks</dt><dd>@Model.Tasks.Open</dd><dd class="metric-link"><a asp-action="Tasks">Manage tasks</a></dd></div>
+    <div class="metric-card"><dt>Completed tasks</dt><dd>@Model.Tasks.Completed</dd><dd class="metric-link"><a asp-action="Reports">View reports</a></dd></div>
+    <div class="metric-card"><dt>Unassigned tasks</dt><dd>@Model.Tasks.Unassigned</dd><dd class="metric-link"><a asp-action="Tasks" asp-route-unassigned="true">Review unassigned</a></dd></div>
+</dl>
+<section class="admin-panel" aria-labelledby="task-progress">
+    <div class="admin-panel-header">
+        <div><h2 id="task-progress">Task completion</h2><p>@Model.Tasks.Completed of @Model.Tasks.Total tasks completed</p></div>
+        <a asp-action="Reports" class="btn btn-outline-primary btn-sm">Open reports</a>
+    </div>
+    @if (Model.Tasks.Total > 0)
+    {
+        <meter class="completion-meter" value="@Model.Tasks.Completed" min="0" max="@Model.Tasks.Total"
+               aria-label="Completed tasks">@Model.Tasks.Completed of @Model.Tasks.Total</meter>
+    }
+    else
+    {
+        <p class="mb-0 text-secondary">Completion will appear once a task is created.</p>
+    }
+</section>

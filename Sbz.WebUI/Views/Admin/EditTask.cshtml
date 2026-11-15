@@ -11,12 +11,25 @@
         <input asp-for="Title" class="form-control" required />
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <label asp-for="OwnerName" class="form-label"></label>
-        <input asp-for="OwnerName" class="form-control" aria-describedby="owner-help" />
-        <div id="owner-help" class="form-text">Leave empty to keep the task unassigned.</div>
-        <span asp-validation-for="OwnerName" class="text-danger"></span>
+    <div class="mb-3" data-owner-picker>
+        <div class="mb-2" data-owner-search hidden>
+            <label for="owner-search" class="form-label">Search owners</label>
+            <input id="owner-search" class="form-control" type="search" autocomplete="off"
+                   placeholder="Filter by username" aria-controls="OwnerId" />
+            <div class="form-text" data-owner-matches role="status"></div>
+        </div>
+        <label asp-for="OwnerId" class="form-label"></label>
+        <select asp-for="OwnerId" class="form-select" aria-describedby="owner-help owner-error">
+            <option value="">Unassigned</option>
+            @foreach (var owner in Model.Owners)
+            {
+                <option value="@owner.Id">@owner.UserName</option>
+            }
+        </select>
+        <div id="owner-help" class="form-text">Select Unassigned to keep this task visible only to administrators.</div>
+        <span asp-validation-for="OwnerId" id="owner-error" class="text-danger" role="alert"></span>
     </div>
+
     <div class="form-check mb-3">
         <input asp-for="IsCompleted" class="form-check-input" />
         <label asp-for="IsCompleted" class="form-check-label"></label>
@@ -26,3 +39,7 @@
         <a asp-action="Tasks" class="btn btn-outline-secondary">Cancel</a>
     </div>
 </form>
+
+@section Scripts {
+    <script src="~/js/admin-owner-picker.js" asp-append-version="true"></script>
+}

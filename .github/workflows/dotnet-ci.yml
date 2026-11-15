@@ -34,4 +34,20 @@ jobs:
         run: dotnet build Sbz.sln --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test Sbz.sln --configuration Release --no-build
+        run: dotnet test Sbz.sln --configuration Release --no-build --logger trx --results-directory artifacts/test-results
+
+      - name: Test the owner-picker JavaScript
+        run: node --test tests/owner-picker.test.cjs
+
+      - name: Publish test summary
+        if: always()
+        shell: pwsh
+        run: ./scripts/Write-TestSummary.ps1 -ResultsDirectory artifacts/test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: artifacts/test-results/*.trx
+          if-no-files-found: ignore
