@@ -17,11 +17,19 @@ Set `AutoMapper__LicenseKey` in the app environment when using the existing Auto
 
 ## First administrator
 
-Choose an unused username and a strong password. Set the bootstrap values before starting the app:
+On Windows, start the app with the interactive setup script:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-WithAdmin.ps1
+```
+
+Choose an unused username and a fresh password when prompted. For manual setup, set the bootstrap values before starting the app:
 
 ```powershell
 $env:AdminBootstrap__UserName = Read-Host 'Administrator username'
-$env:AdminBootstrap__Password = Read-Host 'Administrator password' -MaskInput
+$adminPassword = Read-Host 'Administrator password' -AsSecureString
+$env:AdminBootstrap__Password = [System.Net.NetworkCredential]::new('', $adminPassword).Password
+Remove-Variable adminPassword
 dotnet run --project Sbz.WebUI
 ```
 
